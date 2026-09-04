@@ -1296,11 +1296,14 @@ if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir);
 }
 app.use(express_1.default.static(publicDir));
-// Initialise SQLite and start server
-(0, database_1.initDatabase)().then(() => {
+// Initialise SQLite/PostgreSQL
+(0, database_1.initDatabase)().catch(err => {
+    console.error('Failed to initialize database on startup:', err);
+});
+// Start server only if not running in a serverless environment like Vercel
+if (!process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log(`Buku Nominatif server running on port http://localhost:${PORT}`);
     });
-}).catch(err => {
-    console.error('Failed to initialize database on startup:', err);
-});
+}
+exports.default = app;
