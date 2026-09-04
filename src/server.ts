@@ -889,7 +889,25 @@ app.get('/api/pejabat/:nip', optionalAuth, async (req: AuthenticatedRequest, res
 });
 
 
+// API: Get Jabatan Lowong
+app.get('/api/lowong', optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const rows = await dbAll('SELECT * FROM jabatan_lowong');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Gagal mengambil data jabatan lowong.' });
+  }
+});
 
+// API: Get Pejabat Pensiun
+app.get('/api/pensiun', optionalAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const rows = await dbAll('SELECT * FROM pejabat_pensiun');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: 'Gagal mengambil data pejabat pensiun.' });
+  }
+});
 
 // CRUD: Create Pejabat (Editor/Admin only)
 app.post('/api/pejabat', authenticateToken, requireRole(['editor', 'admin']), async (req: AuthenticatedRequest, res: Response) => {
