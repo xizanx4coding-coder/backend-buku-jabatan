@@ -5,7 +5,10 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { parseExcelData, parseJabatanLowong, parsePensiun, PejabatRecord } from './parser';
 
-const DB_PATH = path.join(__dirname, '..', 'database.sqlite');
+const isGlitch = !!process.env.PROJECT_DOMAIN;
+const DB_PATH = isGlitch 
+  ? path.join(__dirname, '..', '.data', 'database.sqlite')
+  : path.join(__dirname, '..', 'database.sqlite');
 const EXCEL_PATH = path.join(__dirname, '..', 'BUKU JABATAN & REKAP JABATAN LOWONG.xlsx');
 
 export let db: sqlite3.Database;
