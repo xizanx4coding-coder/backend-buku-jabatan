@@ -1306,4 +1306,4 @@ if (!process.env.VERCEL) {
         console.log(`Buku Nominatif server running on port http://localhost:${PORT}`);
     });
 }
-exports.default = app;
+module.exports = app;
