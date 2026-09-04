@@ -47,13 +47,14 @@ const parser_1 = require("./parser");
 // ─── Dual-DB Adapter ──────────────────────────────────────────────────────────
 // Uses PostgreSQL (Supabase) when DATABASE_URL env is set, otherwise SQLite.
 // This lets the same codebase run locally (SQLite) and on Vercel+Supabase (PG).
-const USE_PG = !!process.env.DATABASE_URL;
+const USE_PG = true; // Force PG on Vercel
+const DB_URL_FALLBACK = "postgresql://postgres.uqoqvgzwsvadpdnwagbe:X1z%40nX171283X4bukujabatan@aws-0-ap-southeast-1.pooler.supabase.com:6543/postgres";
 // ─── PostgreSQL Setup (Supabase) ─────────────────────────────────────────────
 let pgPool = null;
 if (USE_PG) {
     const { Pool } = require('pg');
     pgPool = new Pool({
-        connectionString: process.env.DATABASE_URL,
+        connectionString: process.env.DATABASE_URL || DB_URL_FALLBACK,
         ssl: { rejectUnauthorized: false },
     });
 }

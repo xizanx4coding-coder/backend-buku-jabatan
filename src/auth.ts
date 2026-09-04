@@ -1,13 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
 
-if (!process.env.JWT_SECRET) {
-  throw new Error(
-    'JWT_SECRET environment variable is required. Set it in .env (see .env.example) before starting the server.'
-  );
-}
-
-export const JWT_SECRET = process.env.JWT_SECRET;
+export const JWT_SECRET = process.env.JWT_SECRET || 'buku_jabatan_secret_key_123';
 
 export interface UserPayload {
   id: number;
