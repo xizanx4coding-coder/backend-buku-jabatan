@@ -29,8 +29,6 @@ const DB_PATH = isGlitch
 
 const EXCEL_PATH = path.join(__dirname, '..', 'BUKU JABATAN & REKAP JABATAN LOWONG.xlsx');
 
-let sqliteDb: import('sqlite3').Database | null = null;
-
 // ─── Unified Query Wrappers ───────────────────────────────────────────────────
 
 /**
@@ -42,42 +40,17 @@ function toPostgresSQL(sql: string): string {
 }
 
 export async function dbRun(sql: string, params: any[] = []): Promise<void> {
-  if (USE_PG && pgPool) {
-    await pgPool.query(toPostgresSQL(sql), params);
-    return;
-  }
-  return new Promise((resolve, reject) => {
-    sqliteDb!.run(sql, params, function (err) {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
+  await pgPool!.query(toPostgresSQL(sql), params);
 }
 
 export async function dbAll<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-  if (USE_PG && pgPool) {
-    const result = await pgPool.query(toPostgresSQL(sql), params);
-    return result.rows as T[];
-  }
-  return new Promise((resolve, reject) => {
-    sqliteDb!.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows as T[]);
-    });
-  });
+  const result = await pgPool!.query(toPostgresSQL(sql), params);
+  return result.rows as T[];
 }
 
 export async function dbGet<T = any>(sql: string, params: any[] = []): Promise<T | undefined> {
-  if (USE_PG && pgPool) {
-    const result = await pgPool.query(toPostgresSQL(sql), params);
-    return result.rows[0] as T | undefined;
-  }
-  return new Promise((resolve, reject) => {
-    sqliteDb!.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row as T | undefined);
-    });
-  });
+  const result = await pgPool!.query(toPostgresSQL(sql), params);
+  return result.rows[0] as T | undefined;
 }
 
 // ─── Schema Initialisation ────────────────────────────────────────────────────
@@ -314,30 +287,10 @@ async function seedInitialData(): Promise<void> {
 }
 
 export async function initDatabase(): Promise<void> {
-  if (USE_PG) {
-    console.log('Using PostgreSQL (Supabase)...');
-  } else {
-    console.log('Using SQLite...');
-    const dbExists = fs.existsSync(DB_PATH);
-    const sqlite3 = require('sqlite3');
-
-    // Ensure .data folder exists on Glitch
-    const dbDir = path.dirname(DB_PATH);
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
-    }
-
-    sqliteDb = new sqlite3.Database(DB_PATH);
-    await dbRun('PRAGMA foreign_keys = ON;');
-  }
-
+  console.log('Using PostgreSQL (Supabase)...');
   await createTables();
   await ensurePejabatColumns();
   await seedInitialData();
-
-  if (!USE_PG) {
-    console.log('database.sqlite verified.');
-  }
 }
 
 export async function createAuditLog(username: string, action: string, details: string): Promise<void> {
@@ -351,5 +304,3 @@ export async function createAuditLog(username: string, action: string, details: 
   }
 }
 
-// Re-export db for any legacy direct SQLite access
-export { sqliteDb as db };

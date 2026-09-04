@@ -33,7 +33,6 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.db = void 0;
 exports.dbRun = dbRun;
 exports.dbAll = dbAll;
 exports.dbGet = dbGet;
@@ -64,8 +63,6 @@ const DB_PATH = isGlitch
     ? path.join(__dirname, '..', '.data', 'database.sqlite')
     : path.join(__dirname, '..', 'database.sqlite');
 const EXCEL_PATH = path.join(__dirname, '..', 'BUKU JABATAN & REKAP JABATAN LOWONG.xlsx');
-let sqliteDb = null;
-exports.db = sqliteDb;
 // ─── Unified Query Wrappers ───────────────────────────────────────────────────
 /**
  * Converts SQLite-style "?" placeholders to PostgreSQL "$1, $2, ..." style.
@@ -75,46 +72,15 @@ function toPostgresSQL(sql) {
     return sql.replace(/\?/g, () => `$${++i}`);
 }
 async function dbRun(sql, params = []) {
-    if (USE_PG && pgPool) {
-        await pgPool.query(toPostgresSQL(sql), params);
-        return;
-    }
-    return new Promise((resolve, reject) => {
-        sqliteDb.run(sql, params, function (err) {
-            if (err)
-                reject(err);
-            else
-                resolve();
-        });
-    });
+    await pgPool.query(toPostgresSQL(sql), params);
 }
 async function dbAll(sql, params = []) {
-    if (USE_PG && pgPool) {
-        const result = await pgPool.query(toPostgresSQL(sql), params);
-        return result.rows;
-    }
-    return new Promise((resolve, reject) => {
-        sqliteDb.all(sql, params, (err, rows) => {
-            if (err)
-                reject(err);
-            else
-                resolve(rows);
-        });
-    });
+    const result = await pgPool.query(toPostgresSQL(sql), params);
+    return result.rows;
 }
 async function dbGet(sql, params = []) {
-    if (USE_PG && pgPool) {
-        const result = await pgPool.query(toPostgresSQL(sql), params);
-        return result.rows[0];
-    }
-    return new Promise((resolve, reject) => {
-        sqliteDb.get(sql, params, (err, row) => {
-            if (err)
-                reject(err);
-            else
-                resolve(row);
-        });
-    });
+    const result = await pgPool.query(toPostgresSQL(sql), params);
+    return result.rows[0];
 }
 // ─── Schema Initialisation ────────────────────────────────────────────────────
 async function createTables() {
@@ -334,27 +300,10 @@ async function seedInitialData() {
     }
 }
 async function initDatabase() {
-    if (USE_PG) {
-        console.log('Using PostgreSQL (Supabase)...');
-    }
-    else {
-        console.log('Using SQLite...');
-        const dbExists = fs.existsSync(DB_PATH);
-        const sqlite3 = require('sqlite3');
-        // Ensure .data folder exists on Glitch
-        const dbDir = path.dirname(DB_PATH);
-        if (!fs.existsSync(dbDir)) {
-            fs.mkdirSync(dbDir, { recursive: true });
-        }
-        exports.db = sqliteDb = new sqlite3.Database(DB_PATH);
-        await dbRun('PRAGMA foreign_keys = ON;');
-    }
+    console.log('Using PostgreSQL (Supabase)...');
     await createTables();
     await ensurePejabatColumns();
     await seedInitialData();
-    if (!USE_PG) {
-        console.log('database.sqlite verified.');
-    }
 }
 async function createAuditLog(username, action, details) {
     try {
