@@ -45,7 +45,10 @@ const fs = __importStar(require("fs"));
 const crypto = __importStar(require("crypto"));
 const bcrypt = __importStar(require("bcryptjs"));
 const parser_1 = require("./parser");
-const DB_PATH = path.join(__dirname, '..', 'database.sqlite');
+const isGlitch = !!process.env.PROJECT_DOMAIN;
+const DB_PATH = isGlitch
+    ? path.join(__dirname, '..', '.data', 'database.sqlite')
+    : path.join(__dirname, '..', 'database.sqlite');
 const EXCEL_PATH = path.join(__dirname, '..', 'BUKU JABATAN & REKAP JABATAN LOWONG.xlsx');
 // Promise-based wrappers for SQL queries
 function dbRun(sql, params = []) {
